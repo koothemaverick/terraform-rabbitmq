@@ -179,11 +179,25 @@ curl -L "https://github.com/docker/compose/releases/latest/download/docker-compo
 chmod +x /usr/local/bin/docker-compose
 
 # 스왑 설정
-sudo dd if=/dev/zero of=/swapfile bs=256M count=32
+sudo dd if=/dev/zero of=/swapfile bs=128M count=32
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
 sudo sh -c 'echo "/swapfile swap swap defaults 0 0" >> /etc/fstab'
+
+# RabbitMQ 설정 디렉토리 생성
+mkdir -p /home/ec2-user/dockerProjects/rabbitmq-1/volumes/etc/rabbitmq
+
+# rabbitmq.conf 파일 생성 및 설정 추가
+cat <<EOL > /home/ec2-user/dockerProjects/rabbitmq-1/volumes/etc/rabbitmq/rabbitmq.conf
+loopback_users = none
+
+# STOMP 설정
+stomp.listeners.tcp.default = 61613
+
+# Web STOMP 설정
+web_stomp.tcp.port = 15674
+EOL
 
 # docker-compose.yml 파일 생성
 cat <<EOF > /home/ec2-user/docker-compose.yml
@@ -206,7 +220,12 @@ services:
       - /home/ec2-user/dockerProjects/rabbitmq-1/volumes/etc/rabbitmq:/etc/rabbitmq
       - /home/ec2-user/dockerProjects/rabbitmq-1/volumes/var/lib/rabbitmq:/var/lib/rabbitmq
       - /home/ec2-user/dockerProjects/rabbitmq-1/volumes/var/log/rabbitmq:/var/log/rabbitmq
-    sh -c "echo 'loopback_users = none' >> /etc/rabbitmq/rabbitmq.conf && rabbitmq-plugins enable rabbitmq_management && rabbitmq-plugins enable rabbitmq_stomp && rabbitmq-plugins enable rabbitmq_mqtt && rabbitmq-server"
+    command: >
+      sh -c "rabbitmq-plugins enable --offline rabbitmq_management &&
+             rabbitmq-plugins enable --offline rabbitmq_stomp &&
+             rabbitmq-plugins enable --offline rabbitmq_web_stomp &&
+             rabbitmq-plugins enable --offline rabbitmq_mqtt &&
+             rabbitmq-server"
 
 volumes:
   rabbitmq-data:
