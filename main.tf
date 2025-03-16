@@ -179,7 +179,7 @@ curl -L "https://github.com/docker/compose/releases/latest/download/docker-compo
 chmod +x /usr/local/bin/docker-compose
 
 # 스왑 설정
-sudo dd if=/dev/zero of=/swapfile bs=128M count=32
+sudo dd if=/dev/zero of=/swapfile bs=256M count=32
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
