@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: junhui9789/my-rabbitmq:latest
+    container_name: my-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"  # AMQP 포트
+      - "15672:15672"  # 관리 UI 포트
+      - "61613:61613"  # STOMP 포트
+      - "15674:15674"  # WebSocket STOMP 포트 추가
+      - "15673:15673"  # WebSocket STOMP Secure 포트 (WSS)
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    command: >
+      sh -c "rabbitmq-plugins enable --offline rabbitmq_management &&
+             rabbitmq-plugins enable --offline rabbitmq_stomp &&
+             rabbitmq-plugins enable --offline rabbitmq_web_stomp &&
+             rabbitmq-plugins enable --offline rabbitmq_mqtt &&
+             rabbitmq-server"
+
+volumes:
+  rabbitmq-data:
