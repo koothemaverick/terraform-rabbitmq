@@ -185,20 +185,6 @@ sudo mkswap /swapfile
 sudo swapon /swapfile
 sudo sh -c 'echo "/swapfile swap swap defaults 0 0" >> /etc/fstab'
 
-# RabbitMQ 설정 디렉토리 생성
-mkdir -p /home/ec2-user/dockerProjects/rabbitmq-1/volumes/etc/rabbitmq
-
-# rabbitmq.conf 파일 생성 및 설정 추가
-cat <<EOL > /home/ec2-user/dockerProjects/rabbitmq-1/volumes/etc/rabbitmq/rabbitmq.conf
-loopback_users = none
-
-# STOMP 설정
-stomp.listeners.tcp.default = 61613
-
-# Web STOMP 설정
-web_stomp.tcp.port = 15674
-EOL
-
 # docker-compose.yml 파일 생성
 cat <<EOF > /home/ec2-user/docker-compose.yml
 version: '3.8'
@@ -212,14 +198,12 @@ services:
       - "15672:15672"  # 관리 UI 포트
       - "61613:61613"  # STOMP 포트
       - "15674:15674"  # WebSocket STOMP 포트 추가
+      - "15673:15673"  # WebSocket STOMP Secure 포트 (WSS)
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
-      - /home/ec2-user/dockerProjects/rabbitmq-1/volumes/etc/rabbitmq:/etc/rabbitmq
-      - /home/ec2-user/dockerProjects/rabbitmq-1/volumes/var/lib/rabbitmq:/var/lib/rabbitmq
-      - /home/ec2-user/dockerProjects/rabbitmq-1/volumes/var/log/rabbitmq:/var/log/rabbitmq
     command: >
       sh -c "rabbitmq-plugins enable --offline rabbitmq_management &&
              rabbitmq-plugins enable --offline rabbitmq_stomp &&
